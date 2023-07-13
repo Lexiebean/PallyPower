@@ -4,6 +4,9 @@ BINDING_HEADER_PALLYPOWER_HEADER = "Pally Power";
 BINDING_NAME_TOGGLE = "Toggle Buff Bar";
 BINDING_NAME_REPORT = "Report Assignments";
 
+local RestorSelfAutoCastTimeOut = 1;
+local RestorSelfAutoCast = false;
+
 AllPallys = { };
 
 PallyPower_Assignments = { };
@@ -91,6 +94,15 @@ function PallyPower_OnLoad()
 end
 
 function PallyPower_OnUpdate(tdiff)
+
+	if (RestorSelfAutoCast) then
+		RestorSelfAutoCastTimeOut = RestorSelfAutoCastTimeOut - tdiff;
+		if (RestorSelfAutoCastTimeOut < 0) then
+			RestorSelfAutoCast = false;
+			SetCVar("autoSelfCast", "1");
+		end
+	end
+
     --  PP_Debug("OnUpdate "..tdiff);
     if (not PP_PerUser.scanfreq) then
         PP_PerUser.scanfreq = 10;
@@ -887,6 +899,13 @@ function PallyPowerBuffButton_OnLoad(btn)
 end
 
 function PallyPowerBuffButton_OnClick(btn, mousebtn)
+
+	RestorSelfAutoCastTimeOut = 1;
+    if (GetCVar("autoSelfCast") == "1") then
+	    RestorSelfAutoCast = true;
+	    SetCVar("autoSelfCast", "0");
+    end
+
     ClearTarget()
     PP_Debug("Casting " .. btn.buffID .. " on " .. btn.classID)
     CastSpell(AllPallys[UnitName("player")][btn.buffID]["id"], BOOKTYPE_SPELL);
